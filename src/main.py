@@ -12,7 +12,7 @@ from config import PROXY_TICKERS, hmmParam
 parser = argparse.ArgumentParser()
 
 
-parser.add_argument("-p", "--portfolio",
+parser.add_argument("-t", "--ticker",
                     required = True,
                     help = "String with yFinance stock code")
 
@@ -30,13 +30,13 @@ def main():
     # Build output path from command-line input or use the default
     try:
         if args.output is None:
-            outPath = log.makeOutPath(args.output, args.portfolio)
+            outPath = log.makeOutPath(args.output, args.ticker)
         else:
             outPath = Path(args.output)
     except Exception:
         logging.warning("Failed to write final log")
         
-    log.writeLogStart(outPath, args.portfolio)
+    log.writeLogStart(outPath, args.ticker)
     log.setUpLogging()
     log.configToJson(outPath)
     
@@ -49,10 +49,10 @@ def main():
         
         # Get market info
         marketData, featureSets = marketFeat.getMarketFeatures(PROXY_TICKERS)
-        portfolio = marketFeat.getStockFeatures(args.portfolio)  
+        ticker = marketFeat.getStockFeatures(args.ticker)  
         # Merge all market information and save for audit
         fullData = pd.merge(
-            portfolio,
+            ticker,
             marketData,
             how="inner",
             on="monthYear"
@@ -60,7 +60,7 @@ def main():
         
         dataFrames = {
             "marketData": marketData,
-            "targetData": portfolio
+            "targetData": ticker
         }
         log.marketsToCsv(outPath, dataFrames)
 
@@ -69,7 +69,7 @@ def main():
         for featureName, featureCols in featureSets.items():
             baselineEnResults = model.baselineEnCv(
                 fullData,
-                args.portfolio,
+                args.ticker,
                 featureName,
                 featureCols
             )
@@ -85,7 +85,7 @@ def main():
             
             elasticNetHmmProbResults = model.elasticNetHmmProb(
                 hmmData,
-                args.portfolio,
+                args.ticker,
                 featureName,
                 featureCols,
                 hmmParam["n_components"]
@@ -94,7 +94,7 @@ def main():
             
             elasticNetRegimeSpecResults = model.elasticNetRegimeSpec(
                 hmmData,
-                args.portfolio,
+                args.ticker,
                 featureName,
                 featureCols,
                 hmmParam["n_components"]
@@ -124,7 +124,7 @@ def main():
                     fullData,
                     modelName,
                     featureName,
-                    args.portfolio,
+                    args.ticker,
                     resultsDf
                 )
         
@@ -133,7 +133,7 @@ def main():
                     modelName, 
                     featureName, 
                     metrics, 
-                    args.portfolio)
+                    args.ticker)
         
                 regimeSharpeDf = validation.calcRegimeSharpes(
                     validationDf,
