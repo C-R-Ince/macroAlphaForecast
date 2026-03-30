@@ -202,6 +202,13 @@ python src/main.py --ticker <yFinance_ticker>
 
 Together, these results indicate that macro signals do not provide universal predictive power, but can offer meaningful edge when conditioned on regime, recency, and signal strength.
 
+## Select examples of Results images
+
+![sharpeHeatmap_xom](exampleResults/macroAlphaForecast_YYYYMMDD_XOM/sharpeHeatmap_xom.png)
+
+![equityCurve_returns_xom](exampleResults/macroAlphaForecast_YYYYMMDD_XOM/equityCurves_return_xom.png)
+
+![equityCurve_lag2_xom](exampleResults/macroAlphaForecast_YYYYMMDD_XOM/equityCurves_lag2_xom.png)
 
 ## Limitations
 
