@@ -112,7 +112,7 @@ threadpoolctl==3.6.0
 
 ## Project Structure
 ```txt
-project/
+src/
 │
 ├── main.py
 ├── marketFeat.py           # Feature engineering 
