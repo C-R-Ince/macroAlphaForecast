@@ -13,6 +13,11 @@ However, the model does not act as a consistent return forecaster and may underp
 
 These results suggest that macro signals are not universally predictive, but can provide meaningful edge when conditioned on regime and signal strength.
 
+## TL;DR
+
+* Regime-aware models outperform baseline in risk-adjusted terms  
+* Signal is sparse and concentrated in high-confidence periods  
+* Model acts as a **filter**, not a continuous predictor
 
 ## Research Hypothesis
 **H₀ (Null Hypothesis):**
@@ -34,28 +39,22 @@ The goal is to evaluate whether incorporating latent market regimes improves pre
 
 
 ## Pipeline
-```
-		   Data sourced (GPR, config stock, user input stock)
-						|
-						V
-		   Data handling and feature generation	
-		 		|					|
-		 		V					|
-		   Baseline 				|
-		   ElasticNetCV				|
-		   (Time-decay)				|
-		 		|					V
-		 		|	Walk-forward Hmm of GPR and config stock
-		 		|		 |						|
-		 		|		 V						V
-		 		|	Regime Feature		  Regime Probability
-		 		|	ElasticNetCV 		  ElasticNetCV
-		 		|	(Time-decay)		  (Time-decay)
-				|		|						|
-				V		V						|
-			Model Validation and Evaluation		V
-			(Total Return, Sharpe ratio, Hit Rate, and Drawdown)
-```				
+```mermaid
+flowchart TD
+A[Data sourced<br/>GPR, config stock, user input] --> B[Feature engineering]
+
+B --> C[Baseline ElasticNetCV<br/>(time-decay)]
+B --> D[Walk-forward HMM<br/>GPR + config stock]
+
+D --> E[Regime Feature ElasticNetCV]
+D --> F[Regime Probability ElasticNetCV]
+
+C --> G[Model evaluation]
+E --> G
+F --> G
+
+G --> H[Metrics<br/>Return, Sharpe, Hit Rate, Drawdown]
+```			
 	
 				
 ## Scripts
@@ -85,9 +84,14 @@ Maximum Drawdown
 Macroeconomic indicators, GPR, commodities, and sector ETFs as explanatory variables for a target stock
 
 
-## Requirements
+## Installation
 
-```hmmlearn==0.3.3
+```bash
+pip install -r requirements.txt
+```
+
+```txt
+hmmlearn==0.3.3
 joblib==1.5.3
 numpy==2.4.3
 pandas==3.0.1
@@ -101,7 +105,8 @@ threadpoolctl==3.6.0
 
 
 ## Project Structure
-```project/
+```txt
+project/
 │
 ├── main.py
 ├── marketFeat.py           # Feature engineering 
@@ -128,7 +133,6 @@ The model predicts r_{t+1}, ensuring no look-ahead bias.
 
 
 ## Example Usage
-
 ```bash
 pip install -r requirements.txt
 python main.py -p <yFinance_ticker>
@@ -143,7 +147,8 @@ python main.py -p <yFinance_ticker>
 
 
 ## Output Structure (assuming default file path)
-```macroAlphaForecast_YYYYMMDD_stock/
+```txt
+macroAlphaForecast_YYYYMMDD_stock/
 ├─── marketData /						# Data generated during preprocessing
 │		├─── fullData.csv 				# Full dataset used in modelling (audit trail)
 │ 		├─── marketData.csv				# Market + macro features
@@ -200,7 +205,7 @@ Together, these results indicate that macro signals do not provide universal pre
 
 ## Future Improvements
 
-* Add unique run IDs and stop overwritting previous runs
+* Add unique run IDs and stop overwriting previous runs
 * Add threshold-based exits of models due to accumulated warnings
 * Implement Bayesian priors to inform more appropriate regime switching
 * Extend the model to a Markov-switching state-space framework, using Kalman filtering within regimes and EM for estimation of regime-specific parameters and transition dynamics.
