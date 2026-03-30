@@ -1,0 +1,15 @@
+# Python
+.macroAlphaForecastEnv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+
+# Eclipse / PyDev
+.project
+.pydevproject
+.settings/
+
+# OS
+.DS_Store
