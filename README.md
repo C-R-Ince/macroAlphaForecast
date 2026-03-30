@@ -204,10 +204,13 @@ Together, these results indicate that macro signals do not provide universal pre
 
 ## Select Example Results
 Sample outputs from model validation on XOM.
+
 **Sharpe Heatmap (XOM)**
 ![sharpeHeatmap_xom](exampleResults/macroAlphaForecast_YYYYMMDD_XOM/sharpeHeatmap_xom.png)
+
 **Equity Curve (Returns, XOM)**
 ![equityCurve_returns_xom](exampleResults/macroAlphaForecast_YYYYMMDD_XOM/equityCurves_return_xom.png)
+
 **Equity Curve (Lag 2, XOM)**
 ![equityCurve_lag2_xom](exampleResults/macroAlphaForecast_YYYYMMDD_XOM/equityCurves_lag2_xom.png)
 
