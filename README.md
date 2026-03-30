@@ -148,29 +148,30 @@ python src/main.py --ticker <yFinance_ticker>
 ## Optional Arguments
 
 ```bash
---output 					# Define output directory for the project
+--output path/to/output/  			    # Define output directory for the project
 ```
 
 
 ## Output Structure (assuming default file path)
 ```txt
-macroAlphaForecast_YYYYMMDD_stock/
-│
-├─── marketData /						# Data generated during preprocessing
-│		├─── fullData.csv 				# Full dataset used in modelling (audit trail)
-│ 		├─── marketData.csv				# Market + macro features
-│ 		└─── targetData.csv				# Target stock + engineered features
-├─── models /							# Model outputs (by model type, then feature set)
-│       ├── baselineElasticNet /		
-│       ├── elasticNetHmmProb /
-│       ├── elasticNetRegimeSpec /
-│		└── hiddenMarkovModel /
-├─── validation /					 	# Backtest results and evaluation metrics
-│       ├── model /						# Validation metrics per model (Backtesting, sharpe, 
-│       ├── feature /					# Cumulative returns calculated per feature	
-│		└── sharpeHeatmap.html			# Heatmap displaying sharpe ratio, model x feature
-├─── logFile.txt						# Log file storing run date and time, wall clock time, error messages, and exit status
-└─── config.json						# JSON file that stores all configurable information at the time of running
+./audit/
+    └─── macroAlphaForecast_YYYYMMDD_{ticker}/
+			│
+			├─── marketData /						# Data generated during preprocessing
+			│		├─── fullData.csv 				# Full dataset used in modelling (audit trail)
+			│ 		├─── marketData.csv				# Market + macro features
+			│ 		└─── targetData.csv				# Target stock + engineered features
+			├─── models /							# Model outputs (by model type, then feature set)
+			│       ├── baselineElasticNet /		
+			│       ├── elasticNetHmmProb /
+			│       ├── elasticNetRegimeSpec /
+			│		└── hiddenMarkovModel /
+			├─── validation /					 	# Backtest results and evaluation metrics
+			│       ├── model /						# Validation metrics per model (Backtesting, sharpe, 
+			│       ├── feature /					# Cumulative returns calculated per feature	
+			│		└── sharpeHeatmap.html			# Heatmap displaying sharpe ratio, model x feature
+			├─── logFile.txt						# Log file storing run date and time, wall clock time, error messages, and exit status
+			└─── config.json						# JSON file that stores all configurable information at the time of running
 ```
 
 
