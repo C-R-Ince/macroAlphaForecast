@@ -148,7 +148,7 @@ python src/main.py --ticker <yFinance_ticker>
 ## Optional Arguments
 
 ```bash
---output path/to/output/  			    # Define output directory for the project
+--output path/to/output/  			  			  	# Define output directory for the project
 ```
 
 
