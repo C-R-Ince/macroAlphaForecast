@@ -39,21 +39,27 @@ The goal is to evaluate whether incorporating latent market regimes improves pre
 
 
 ## Pipeline
-```mermaid
-flowchart TD
-A[Data sourced<br/>GPR, config stock, user input] --> B[Feature engineering]
-
-B --> C[Baseline ElasticNetCV<br/>(time-decay)]
-B --> D[Walk-forward HMM<br/>GPR + config stock]
-
-D --> E[Regime Feature ElasticNetCV]
-D --> F[Regime Probability ElasticNetCV]
-
-C --> G[Model evaluation]
-E --> G
-F --> G
-
-G --> H[Metrics<br/>Return, Sharpe, Hit Rate, Drawdown]
+```
+		   Data sourced (GPR, config stock, user input stock)
+						|
+						V
+		   Data handling and feature generation	
+		 		|					|
+		 		V					|
+		   Baseline 				|
+		   ElasticNetCV				|
+		   (Time-decay)				|
+		 		|					V
+		 		|	Walk-forward Hmm of GPR and config stock
+		 		|		 |						|
+		 		|		 V						V
+		 		|	Regime Feature		  Regime Probability
+		 		|	ElasticNetCV 		  ElasticNetCV
+		 		|	(Time-decay)		  (Time-decay)
+				|		|						|
+				V		V						|
+			Model Validation and Evaluation		V
+			(Total Return, Sharpe ratio, Hit Rate, and Drawdown)
 ```			
 	
 				
