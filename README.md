@@ -141,7 +141,7 @@ The model predicts r_{t+1}, ensuring no look-ahead bias.
 ## Example Usage
 ```bash
 pip install -r requirements.txt
-python main.py -p <yFinance_ticker>
+python main.py --ticker <yFinance_ticker>
 ```
 
 
