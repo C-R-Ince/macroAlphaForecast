@@ -21,8 +21,11 @@ These results suggest that macro signals are not universally predictive, but can
 
 ## Research Hypothesis
 **H₀ (Null Hypothesis):**
+
 Incorporating regime information does not improve predictive performance or materially change the relationships learned by the model.
+
 **H₁ (Alternative Hypothesis):** 
+
 Markets exhibit regime-dependent behaviour, while relationships within regimes are approximately linear. Therefore, incorporating regime information via a Hidden Markov Model into a regularised linear model (Elastic Net) should improve predictive performance and enable the extraction of signal from noisy macroeconomic features.
 
 
