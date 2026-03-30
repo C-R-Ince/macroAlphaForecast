@@ -141,7 +141,7 @@ The model predicts r_{t+1}, ensuring no look-ahead bias.
 ## Example Usage
 ```bash
 pip install -r requirements.txt
-python main.py --ticker <yFinance_ticker>
+python src/main.py --ticker <yFinance_ticker>
 ```
 
 
@@ -155,6 +155,7 @@ python main.py --ticker <yFinance_ticker>
 ## Output Structure (assuming default file path)
 ```txt
 macroAlphaForecast_YYYYMMDD_stock/
+│
 ├─── marketData /						# Data generated during preprocessing
 │		├─── fullData.csv 				# Full dataset used in modelling (audit trail)
 │ 		├─── marketData.csv				# Market + macro features
