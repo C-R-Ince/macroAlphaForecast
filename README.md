@@ -223,6 +223,7 @@ Sample outputs from framework validation on XOM.
 ## Limitations
 
 * Relies on free and open source data for stock information that is subject to disruptions
+* The framework has a minimum historical data requirement. Recently listed equities may not provide sufficient observations for stable model fitting without relaxing validation settings in the config file. Doing so may reduce the robustness and reliability of the framework’s outputs.
 * Limited feature set may restrict model expressiveness and predictive power
 * Macroeconomic and GPR features are inherently noisy and subject to revisions
 * Hidden Markov Models assume a fixed number of regimes, which may not reflect evolving market dynamics
