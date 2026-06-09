@@ -220,6 +220,9 @@ Sample outputs from framework validation on XOM.
 **Equity Curve (Lag 2, XOM)**
 ![equityCurve_lag2_xom](results/exampleFigures/equityCurves_lag2_xom.png)
 
+**Rolling Sharpe, 12 month period (Returns, XOM)**
+![equityCurve_lag2_xom](results/exampleFigures/rollingSharpe12_returns_xom.png)
+
 ## Limitations
 
 * Relies on free and open source data for stock information that is subject to disruptions
