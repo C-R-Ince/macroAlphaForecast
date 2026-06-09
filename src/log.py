@@ -9,6 +9,7 @@ import config
 import json
 import logging
 import warnings
+import numpy
 
 startTime = time.time()
 startDateTime = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -41,12 +42,12 @@ def writeLogStart(path, stock):
     logFile = outPath / "logFile.txt"
     
     logLine = (
-        f"{'=' * 85}\n"
+        f"{'=' * 110}\n"
         f"Stock: {stock}\n"
         f"GPR data downloaded from https://www.matteoiacoviello.com/gpr.htm on {datetime.now():%Y-%m-%d}\n"
         f"Stock information sourced from Yahoo finance and stooq.pl on {datetime.now():%Y-%m-%d}\n"
         f"Start: {startDateTime}\n"
-        f"{'=' * 85}\n"
+        f"{'=' * 110}\n"
     )
 
     with open(logFile, "w") as f:
@@ -64,12 +65,12 @@ def writeLogEnd(status, url=""):
     
 
     logEnd = (
-        f"{'=' * 85}\n"
-        f"{'=' * 85}\n"
+        f"{'=' * 110}\n"
+        f"{'=' * 110}\n"
         f"End: {endDateTime}\n"
         f"Wall: {formatted} ({wallClock:.2f}s)\n"
         f"Peak RAM: {peakRamMb:.2f} MB\n"
-        f"{'=' * 85}\n"
+        f"{'=' * 110}\n"
         f"Exit Status: {status} - {statusMessage}\n"
     )
     
@@ -90,8 +91,8 @@ def manualLogStart(process, subprocess):
     """Log the start time of a pipeline process."""
     logStart = datetime.now()
     logLine = (
-        f"{'=' * 85}\n"
-        f"Processs starting: {process} - {subprocess} at {logStart:%Y-%m-%d %H:%M:%S}\n"
+        f"{'=' * 110}\n"
+        f"Process starting: {process} - {subprocess}, {logStart:%Y-%m-%d %H:%M:%S}\n"
         )
     
     with open(logFile, "a") as f:
@@ -198,11 +199,12 @@ def saveEnResults(path, results, featureName, model):
     
     results.to_csv(outPath / "elasticNetResults.csv")
     
-def saveHmmResults(path, hmmData, hmmResults, featureName): 
+def saveHmmResults(path, hmmData, hmmResults, meanTransMat, featureName): 
     outPath = Path(path) / f"models/hiddenMarkovModel/{featureName}"
     outPath.mkdir(parents=True, exist_ok=True)
     
     hmmData.to_csv(os.path.join(outPath / "hmmData.csv"))
+    numpy.savetxt(os.path.join(outPath / "meanTransMat.csv"), meanTransMat, delimiter=",")
     
     for name, obj in hmmResults.items():
         if name == "featureName":
@@ -238,3 +240,8 @@ def savePlot(path, fig, parent, modelName, featureName, name):
     
     fig.write_html(outPath / name)
 
+def savePng(path, fig, parent, modelName, featureName, name):
+    outPath = Path(path) / f"validation/{parent}/{modelName}/{featureName}"
+    outPath.mkdir(parents=True, exist_ok=True)
+    
+    fig.savefig(outPath / name)

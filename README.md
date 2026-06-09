@@ -1,24 +1,38 @@
 # Macro Alpha Forecast
 ## A regime-aware, time-decayed framework for selective extraction of high-conviction macro signals
 
-This project investigates whether financial markets exhibit regime-dependent behaviour, where relationships within regimes remain approximately linear but differ across regimes.
+This project investigates whether financial markets exhibit regime-dependent behaviour, and whether conditioning on these regimes improves the extraction of predictive signal from noisy macroeconomic data.
 
-To explore this, a walk-forward modelling pipeline was developed combining Hidden Markov Models (for latent regime detection) with Elastic Net regression (for regularised linear modelling). The objective was to assess whether regime-aware linear models can extract signal from noisy macroeconomic features such as Geopolitical Risk (GPR).
+To explore this, a walk-forward modelling pipeline was developed combining Hidden Markov Models (for latent regime detection) with Elastic Net regression (for regularised linear modelling). The objective was to assess whether regime-aware linear models can extract predictive signal from noisy macroeconomic features such as Geopolitical Risk (GPR).
 
 The focus of the project is on understanding model behaviour and signal structure, rather than maximising raw predictive performance.
 
-Testing across a diversified set of stocks shows that predictive power is concentrated in a small subset of high-confidence signals. The model performs best as a selective filter, extracting alpha during informative regimes while avoiding low-signal periods.
+Testing across a diversified set of equities shows that predictive power is concentrated in a small subset of high-confidence signals. The model performs best as a selective filter, extracting alpha during informative regimes while avoiding low-signal periods.
 
-However, the model does not act as a consistent return forecaster and may underperform buy-and-hold strategies in strongly trending or macro-insensitive assets.
+However, the framework does not act as a consistent return forecaster and may underperform buy-and-hold strategies in strongly trending or macro-insensitive assets.
 
 These results suggest that macro signals are not universally predictive, but can provide meaningful edge when conditioned on regime and signal strength.
 
+## TL;DR
+
+* Regime-aware models outperform baseline in risk-adjusted terms  
+* Signal is sparse and concentrated in high-confidence periods  
+* The framework acts as a **filter**, not a continuous predictor
 
 ## Research Hypothesis
 **H₀ (Null Hypothesis):**
-Incorporating regime information does not improve predictive performance or materially change the relationships learned by the model.
+
+Incorporating regime information does not improve predictive performance or materially change the relationships learned by the framework.
+
 **H₁ (Alternative Hypothesis):** 
+
 Markets exhibit regime-dependent behaviour, while relationships within regimes are approximately linear. Therefore, incorporating regime information via a Hidden Markov Model into a regularised linear model (Elastic Net) should improve predictive performance and enable the extraction of signal from noisy macroeconomic features.
+
+
+## Project Goals
+
+* Evaluate macroeconomic variables and Geopolitical Risk (GPR) as forecasting signals for user-selected equities
+* Investigate whether walk-forward Hidden Markov Models (HMMs) enhance predictive performance of time-decay Elastic Net models in the presence of multicollinearity
 
 
 ## Overview
@@ -55,7 +69,7 @@ The goal is to evaluate whether incorporating latent market regimes improves pre
 				V		V						|
 			Model Validation and Evaluation		V
 			(Total Return, Sharpe ratio, Hit Rate, and Drawdown)
-```				
+```			
 	
 				
 ## Scripts
@@ -76,18 +90,23 @@ The goal is to evaluate whether incorporating latent market regimes improves pre
 Time-decay Elastic Net augmented with HMM regime probabilities or regime-specific interactions
 
 **Evaluation metrics:**
-Total Return
-Sharpe Ratio
-Hit Rate
-Maximum Drawdown
+* Total Return
+* Sharpe Ratio
+* Hit Rate
+* Maximum Drawdown
 
 **Feature exploration:**
 Macroeconomic indicators, GPR, commodities, and sector ETFs as explanatory variables for a target stock
 
 
-## Requirements
+## Installation
 
-```hmmlearn==0.3.3
+```bash
+pip install -r requirements.txt
+```
+
+```txt
+hmmlearn==0.3.3
 joblib==1.5.3
 numpy==2.4.3
 pandas==3.0.1
@@ -101,7 +120,8 @@ threadpoolctl==3.6.0
 
 
 ## Project Structure
-```project/
+```txt
+src/
 │
 ├── main.py
 ├── marketFeat.py           # Feature engineering 
@@ -128,52 +148,49 @@ The model predicts r_{t+1}, ensuring no look-ahead bias.
 
 
 ## Example Usage
-
 ```bash
 pip install -r requirements.txt
-python main.py -p <yFinance_ticker>
+python src/main.py --ticker <yFinance_ticker>
 ```
 
 
 ## Optional Arguments
 
 ```bash
---output 					# Define output directory for the project
+--output path/to/output/  			  			  	# Define output directory for the project
 ```
 
 
 ## Output Structure (assuming default file path)
-```macroAlphaForecast_YYYYMMDD_stock/
-├─── marketData /						# Data generated during preprocessing
-│		├─── fullData.csv 				# Full dataset used in modelling (audit trail)
-│ 		├─── marketData.csv				# Market + macro features
-│ 		└─── targetData.csv				# Target stock + engineered features
-├─── models /							# Model outputs (by model type, then feature set)
-│       ├── baselineElasticNet /		
-│       ├── elasticNetHmmProb /
-│       ├── elasticNetRegimeSpec /
-│		└── hiddenMarkovModel /
-├─── validation /					 	# Backtest results and evaluation metrics
-│       ├── model /						# Validation metrics per model (Backtesting, sharpe, 
-│       ├── feature /					# Cumulative returns calculated per feature	
-│		└── sharpeHeatmap.html			# Heatmap displaying sharpe ratio, model x feature
-├─── logFile.txt						# Log file storing run date and time, wall clock time, error messages, and exit status
-└─── config.json						# JSON file that stores all configurable information at the time of running
+```txt
+./audit/
+    └─── macroAlphaForecast_YYYYMMDD_{ticker}/
+			│
+			├─── marketData /						# Data generated during preprocessing
+			│		├─── fullData.csv 				# Full dataset used in modelling (audit trail)
+			│ 		├─── marketData.csv				# Market + macro features
+			│ 		└─── targetData.csv				# Target stock + engineered features
+			├─── models /							# Model outputs (by model type, then feature set)
+			│       ├── baselineElasticNet /		
+			│       ├── elasticNetHmmProb /
+			│       ├── elasticNetRegimeSpec /
+			│		└── hiddenMarkovModel /
+			├─── validation /					 	# Backtest results and evaluation metrics
+			│       ├── model /						# Validation metrics per model (Backtesting, sharpe, 
+			│       ├── feature /					# Cumulative returns calculated per feature	
+			│		└── sharpeHeatmap.html			# Heatmap displaying sharpe ratio, model x feature
+			├─── logFile.txt						# Log file storing run date and time, wall clock time, error messages, and exit status
+			└─── config.json						# JSON file that stores all configurable information at the time of running
 ```
 
 
-## Project Goals
-
-* Evaluate macroeconomic variables and Geopolitical Risk (GPR) as forecasting signals for user-selected equities
-* Investigate whether walk-forward Hidden Markov Models (HMMs) enhance predictive performance of time-decay Elastic Net models in the presence of multicollinearity
-
 ## Key Findings
 
-* **Model performance is asset-dependent.**  
+* **Framework performance is asset-dependent.**  
   The framework performs strongly on macro-sensitive equities (e.g. XOM), fails on idiosyncratic growth stocks (e.g. AAPL), and shows mixed results on partially macro-driven assets (e.g. CVX, BA.L). This suggests that macro signals are only informative when the underlying asset exhibits sufficient macro sensitivity.
 
 * **Predictive power is concentrated in high-confidence signals.**  
-  Strong signals drive the majority of performance, while weaker signals behave as noise. Lowering the signal threshold increases trading frequency but degrades both Sharpe ratio and total return, confirming that the model is most effective as a selective filter rather than a continuous predictor.
+  Strong signals drive the majority of performance, while weaker signals behave as noise. Lowering the signal threshold increases trading frequency but degrades both Sharpe ratio and total return, confirming that the framework is most effective as a selective filter rather than a continuous predictor.
 
 * **Regime-aware modelling improves risk-adjusted performance.**  
   Hidden Markov Model (HMM) conditioning enhances Elastic Net performance relative to baseline models. The effectiveness depends on regime specification, with simpler regime structures (e.g. two regimes) providing more stable and interpretable results than higher-complexity alternatives.
@@ -181,18 +198,32 @@ python main.py -p <yFinance_ticker>
 * **Time-decay is critical for signal extraction.**  
   Increasing time-decay weighting improves performance by prioritising recent data, indicating that both market state and recency are essential for extracting signal from macro features.
 
-* **The model acts as a risk filter rather than a return forecaster.**  
+* **The framework acts as a risk filter rather than a return forecaster.**  
   Performance is primarily driven by avoiding adverse periods rather than capturing full upside trends. This leads to improved Sharpe ratios but potential underperformance versus buy-and-hold in strongly trending assets.
 
 * **Regime complexity interacts with volatility representation.**  
-  Increasing the number of regimes, with sufficient historic data, can endogenise volatility within regime classification, reducing its effectiveness as an independent feature and shifting the model toward a regime-conditioned linear structure dominated by directional return signals.
+  Preliminary work indicated that increasing the number of regimes may endogenise volatility within regime classification if historical data is sufficient. This reduces volatility's effectiveness as an independent feature and shifts the framework toward a regime-conditioned linear structure dominated by directional return signals.
 
-Together, these results indicate that macro signals do not provide universal predictive power, but can offer meaningful edge when conditioned on regime, recency, and signal strength.
+Together, these results indicate that macro signals provide conditional, not universal, predictive power, with effectiveness determined by regime structure, recency, and signal strength. The framework acts as a tail-risk mitigator rather than a generator of continuous alpha.
 
+For a more detailed analysis, see [Framework Findings](./results/frameworkFindings.pdf) 
+
+## Select Example Results
+Sample outputs from framework validation on XOM.
+
+**Sharpe Heatmap (XOM)**
+![sharpeHeatmap_xom](results/exampleFigures/sharpeHeatmap_xom.png)
+
+**Equity Curve (Returns, XOM)**
+![equityCurve_returns_xom](results/exampleFigures/equityCurves_return_xom.png)
+
+**Equity Curve (Lag 2, XOM)**
+![equityCurve_lag2_xom](results/exampleFigures/equityCurves_lag2_xom.png)
 
 ## Limitations
 
 * Relies on free and open source data for stock information that is subject to disruptions
+* The framework has a minimum historical data requirement. Recently listed equities may not provide sufficient observations for stable model fitting without relaxing validation settings in the config file. Doing so may reduce the robustness and reliability of the framework’s outputs.
 * Limited feature set may restrict model expressiveness and predictive power
 * Macroeconomic and GPR features are inherently noisy and subject to revisions
 * Hidden Markov Models assume a fixed number of regimes, which may not reflect evolving market dynamics
@@ -200,7 +231,7 @@ Together, these results indicate that macro signals do not provide universal pre
 
 ## Future Improvements
 
-* Add unique run IDs and stop overwritting previous runs
+* Add unique run IDs and stop overwriting previous runs
 * Add threshold-based exits of models due to accumulated warnings
 * Implement Bayesian priors to inform more appropriate regime switching
 * Extend the model to a Markov-switching state-space framework, using Kalman filtering within regimes and EM for estimation of regime-specific parameters and transition dynamics.

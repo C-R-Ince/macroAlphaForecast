@@ -7,12 +7,13 @@ import marketFeat
 import model
 import log
 import validation
-from config import PROXY_TICKERS, hmmParam
+from config import PROXY_TICKERS, hmmParam, ROLLING_SHARPE_WINDOW
+#from distutils.tests import here
 
 parser = argparse.ArgumentParser()
 
 
-parser.add_argument("-p", "--portfolio",
+parser.add_argument("-t", "--ticker",
                     required = True,
                     help = "String with yFinance stock code")
 
@@ -30,13 +31,13 @@ def main():
     # Build output path from command-line input or use the default
     try:
         if args.output is None:
-            outPath = log.makeOutPath(args.output, args.portfolio)
+            outPath = log.makeOutPath(args.output, args.ticker)
         else:
             outPath = Path(args.output)
     except Exception:
         logging.warning("Failed to write final log")
         
-    log.writeLogStart(outPath, args.portfolio)
+    log.writeLogStart(outPath, args.ticker)
     log.setUpLogging()
     log.configToJson(outPath)
     
@@ -49,7 +50,7 @@ def main():
         
         # Get market info
         marketData, featureSets = marketFeat.getMarketFeatures(PROXY_TICKERS)
-        portfolio = marketFeat.getStockFeatures(args.portfolio)  
+        portfolio = marketFeat.getStockFeatures(args.ticker)  
         # Merge all market information and save for audit
         fullData = pd.merge(
             portfolio,
@@ -69,23 +70,23 @@ def main():
         for featureName, featureCols in featureSets.items():
             baselineEnResults = model.baselineEnCv(
                 fullData,
-                args.portfolio,
+                args.ticker,
                 featureName,
                 featureCols
             )
             log.saveEnResults(outPath, baselineEnResults, featureName, model="baselineElasticNet")
         
-            hmmData, hmmResults, hmmModels = model.runHmm(
+            hmmData, hmmResults, hmmModels, meanTransMat = model.runHmm(
                 fullData,
                 featureName, 
                 featureCols,
                 hmmParam
             )
-            log.saveHmmResults(outPath, hmmData, hmmResults, featureName)
+            log.saveHmmResults(outPath, hmmData, hmmResults, meanTransMat, featureName)
             
             elasticNetHmmProbResults = model.elasticNetHmmProb(
                 hmmData,
-                args.portfolio,
+                args.ticker,
                 featureName,
                 featureCols,
                 hmmParam["n_components"]
@@ -94,7 +95,7 @@ def main():
             
             elasticNetRegimeSpecResults = model.elasticNetRegimeSpec(
                 hmmData,
-                args.portfolio,
+                args.ticker,
                 featureName,
                 featureCols,
                 hmmParam["n_components"]
@@ -106,26 +107,70 @@ def main():
                 "elasticNetHmmProb": elasticNetHmmProbResults,
                 "elasticNetRegimeSpec": elasticNetRegimeSpecResults,
                 "hmmResults": hmmResults,
-                "hmmModels": hmmModels
+                "hmmModels": hmmModels,
+                "hmmTransMat": meanTransMat
             }
         log.marketsToCsv(outPath, fullData)
         
         # Run validation per market feature per model
         sharpeRecord = []
+        regimeColours = validation.regimeColourGen()
         
         for featureName, resultSet in modelResults.items():
             validationDict = {}
         
             for modelName, resultsDf in resultSet.items():
+                
                 if modelName in ["hmmResults", "hmmModels"]:
                     continue
-        
+                
+                if modelName == "hmmTransMat":
+                    plotTitle=f"Transition Matrix heatmap of {featureName}"
+                    fig, logStart = validation.plotTransMat(
+                        featureName,
+                        meanTransMat=resultsDf, 
+                        plotTitle=plotTitle
+                        )
+                    if fig is not None:
+                        log.savePlot(
+                            outPath,
+                            fig,
+                            parent="model",
+                            modelName="hiddenMarkovmodel",
+                            featureName=featureName,
+                            name="meanTransitionMatrix.html"
+                        )
+                    else:
+                        logging.error(f"{plotTitle} was empty, skipping writing step.")
+                        
+                    plotTitle=f"Transition Nodes of {featureName}"    
+                    fig = validation.plotTransNode(
+                        logStart,
+                        featureName,
+                        meanTransMat=resultsDf, 
+                        plotTitle=plotTitle
+                        )       
+                    if fig is not None:
+                        log.savePng(
+                            outPath,
+                            fig,
+                            parent="model",
+                            modelName="hiddenMarkovmodel",
+                            featureName=featureName,
+                            name="meanTransitionGraph.png"
+                        )
+                    else:
+                        logging.error(f"{plotTitle} was empty, skipping writing step.")
+                    continue 
+                
                 metrics, sharpeRecord, validationDf, validationDict, logStart = validation.mergeResults(
                     fullData,
                     modelName,
                     featureName,
-                    args.portfolio,
-                    resultsDf
+                    args.ticker,
+                    resultsDf,
+                    sharpeRecord,
+                    validationDict
                 )
         
                 log.saveValidation(
@@ -133,7 +178,7 @@ def main():
                     modelName, 
                     featureName, 
                     metrics, 
-                    args.portfolio)
+                    args.ticker)
         
                 regimeSharpeDf = validation.calcRegimeSharpes(
                     validationDf,
@@ -141,9 +186,13 @@ def main():
                     periodsPerYear=12
                 )
         
+                plotTitle=f"Sharpe Ratio by Regime: {modelName}"
                 fig = validation.plotRegimeSharpes(
                     regimeSharpeDf,
-                    modelName
+                    plotTitle,
+                    logStart,
+                    modelName, 
+                    featureName
                 )        
                 if fig is not None:
                     log.savePlot(
@@ -154,13 +203,16 @@ def main():
                         featureName=featureName,
                         name="regimeSharpe.html"
                     )
+                else: 
+                    logging.error(f"{plotTitle} was empty, skipping writing step.")
             
-            fig = validation.plotEquityCurvesHtml(
-                validationDict, 
+            plotTitle=f"Equity Curve: {featureName}" 
+            fig, logStart = validation.plotEquityCurvesHtml(
+                validationDict,
+                regimeColours, 
                 hmmData,
-                featureName, 
-                logStart, 
-                title=f"Equity Curve: {featureName}" 
+                plotTitle=plotTitle,
+                featureName=featureName
             )
             if fig is not None:
                 log.savePlot(
@@ -171,7 +223,53 @@ def main():
                     featureName=featureName,
                     name="equityCurves.html"
                 )
-        fig = validation.plotSharpes(sharpeRecord)
+            else:
+                logging.error(f"{plotTitle} was empty, skipping writing step.")
+            
+            plotTitle=f"Backtest: actual vs predicted ({featureName})" 
+            fig = validation.plotBacktest(
+                validationDict,
+                regimeColours, 
+                hmmData,
+                plotTitle=plotTitle
+            )
+            if fig is not None:
+                log.savePlot(
+                    outPath,
+                    fig,
+                    parent="feature",
+                    modelName="",
+                    featureName=featureName,
+                    name="backtest.html"
+                )
+            else:
+                logging.error(f"{plotTitle} was empty, skipping writing step.")
+                           
+            plotTitle=f"Rolling sharpe per {ROLLING_SHARPE_WINDOW} months ({featureName})"
+            fig = validation.plotSharpeRolling(
+                validationDict,
+                plotTitle=plotTitle,
+                logStart=logStart,
+                featureName=featureName
+            )        
+            if fig is not None:
+                log.savePlot(
+                    outPath,
+                    fig,
+                    parent="feature",
+                    modelName="",
+                    featureName=featureName,
+                    name="rollingSharpe.html"
+                )
+            else:
+                logging.error(f"{plotTitle} was empty, skipping writing step.")
+                
+                
+        plotTitle="Sharpe Ratio by Model and Feature"            
+        fig = validation.plotSharpes(
+            sharpeRecord,
+            plotTitle=plotTitle
+            )
         if fig is not None:
             log.savePlot(
                 outPath,
@@ -181,8 +279,13 @@ def main():
                 featureName="",
                 name="sharpeHeatmap.html"
             )
+        else:
+            logging.error(f"{plotTitle} was empty, skipping writing step.")
+                            
         log.writeLogEnd(status)
+        
         return status
+    
     except Exception:
         status = 1
         logging.exception("Pipeline failed")

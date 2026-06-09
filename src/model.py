@@ -1,11 +1,11 @@
 import pandas as pd
 import numpy as np
-import log
 from datetime import datetime
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import ElasticNetCV
 from sklearn.preprocessing import StandardScaler
 from hmmlearn.hmm import GaussianHMM
+import log
 from config import elasticNetParam, getTimeCv, BACKTEST_WINDOW
 
 
@@ -276,6 +276,15 @@ def getStateOrder(hmmModel):
     stateOrder = np.argsort(stateMetric)
     return stateOrder, stateMetric
 
+def meanTransMatrix(hmmModels):
+    transmats = []
+    
+    for modelInfo in hmmModels.values():
+        transmat = modelInfo["model"].transmat_
+        transmats.append(transmat)
+    meanTransmat = np.mean(transmats, axis = 0)
+    return meanTransmat
+
 
 def runHmm(fullData, featureName, featureCols, hmmParam):
     """
@@ -358,7 +367,9 @@ def runHmm(fullData, featureName, featureCols, hmmParam):
             "stateMetric": stateMetric,
             "oldToNew": oldToNew
         }
-
+        
+    meanTransMat = meanTransMatrix(hmmModels)
+    
     # Important: sort by monthYear before creating lags
     fullData = fullData.sort_values("monthYear").copy()
 
@@ -382,4 +393,6 @@ def runHmm(fullData, featureName, featureCols, hmmParam):
         "regimeDev": regimeDev
     }
     log.manualLogEnd(logStart, process="runHmm", subprocess=featureName)
-    return fullData, hmmResults, hmmModels
+    
+    
+    return fullData, hmmResults, hmmModels, meanTransMat

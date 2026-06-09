@@ -1,9 +1,9 @@
 import pandas as pd
 import numpy as np
-from config import DATA_START_DATE, WINDOW, GPR_LIST
-import log
 import logging
 import yfinance as yf
+import log
+from config import DATA_START_DATE, WINDOW, GPR_LIST
 
 def getTickerData(ticker):
     """

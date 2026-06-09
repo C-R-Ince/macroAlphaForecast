@@ -5,6 +5,7 @@ DATA_START_DATE = "1999-01-01" # If stocks used are more recent, the earliest da
 WINDOW = 6 # Rolling window size in months for market features and portfolio calculations
 BACKTEST_WINDOW = 60 # Backtest training window in months. Recommended: 60
 THRESHOLD=0.3 # Prediction quantile threshold used to generate trading signals
+ROLLING_SHARPE_WINDOW=12 # Period over which the sharpe ratio will be measured and plotted, in months
 
 # Market proxy tickers
 PROXY_TICKERS = {
